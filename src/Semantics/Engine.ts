@@ -6,6 +6,9 @@ import { NumberConstant } from '../SyntaxAnalyzer/Tree/NumberConstant';
 import { NumberVariable } from './Variables/NumberVariable';
 import { TreeNodeBase } from '../SyntaxAnalyzer/Tree/TreeNodeBase';
 import { UnaryMinus } from 'src/SyntaxAnalyzer/Tree/UnaryMinus';
+import { Equation } from 'src/SyntaxAnalyzer/Tree/Equation';
+import { Variable } from 'src/SyntaxAnalyzer/Tree/Variable';
+
 
 export class Engine {
     /**
@@ -20,9 +23,12 @@ export class Engine {
      */
     trees: TreeNodeBase[];
 
+    hashMap;
+
     constructor(trees: TreeNodeBase[]) {
         this.trees = trees;
         this.results = [];
+        this.hashMap = new Map();
     }
 
     run() {
@@ -42,16 +48,22 @@ export class Engine {
     evaluateSimpleExpression(expression: TreeNodeBase): NumberVariable {
 
         if (expression instanceof Addition
-            || expression instanceof Subtraction) {
+            || expression instanceof Subtraction
+            || expression instanceof Equation) {
 
             let leftOperand = this.evaluateSimpleExpression(expression.left);
             let rightOperand = this.evaluateSimpleExpression(expression.right);
-
             let result: number | null = null;
             if (expression instanceof Addition) {
                 result = leftOperand.value + rightOperand.value;
             } else if (expression instanceof Subtraction) {
                 result = leftOperand.value - rightOperand.value;
+            } else if (expression instanceof Equation) {
+
+                if(expression.left instanceof Variable) {
+                    this.hashMap.set(expression.left.symbol.value, rightOperand.value);
+                }
+                result = rightOperand.value;
             }
 
             return new NumberVariable(result as number);
@@ -86,7 +98,9 @@ export class Engine {
     evaluateMultiplier(expression: TreeNodeBase) {
         if (expression instanceof NumberConstant) {
             return new NumberVariable(expression.symbol.value);
-        } else {
+        } else if(expression instanceof Variable) {
+            return new NumberVariable(this.hashMap.get(expression.symbol.value));
+        }else {
             throw `Number Constant expected. ${expression.symbol.stringValue}`;
         }
     }

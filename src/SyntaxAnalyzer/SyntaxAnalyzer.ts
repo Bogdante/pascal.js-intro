@@ -9,6 +9,8 @@ import { TreeNodeBase } from './Tree/TreeNodeBase';
 import { SymbolBase } from '../LexicalAnalyzer/Symbols/SymbolBase';
 import { UnaryOperation } from './Tree/UnaryOperation';
 import { UnaryMinus } from './Tree/UnaryMinus';
+import { Equation } from './Tree/Equation';
+import { Variable } from './Tree/Variable';
 
 /**
  * Синтаксический анализатор - отвечает за построение синтаксического дерева
@@ -78,7 +80,8 @@ export class SyntaxAnalyzer {
         while (this.symbol !== null && (
             this.symbol.symbolCode === SymbolsCodes.plus ||
             this.symbol.symbolCode === SymbolsCodes.minus ||
-            this.symbol.symbolCode === SymbolsCodes.closeBracket
+            this.symbol.symbolCode === SymbolsCodes.closeBracket ||
+            this.symbol.symbolCode === SymbolsCodes.equation
         )) {
             if(this.symbol?.symbolCode === SymbolsCodes.closeBracket) {
                 this.nextSym();
@@ -88,7 +91,12 @@ export class SyntaxAnalyzer {
             operationSymbol = this.symbol;
             this.nextSym();
 
+            if(operationSymbol.symbolCode === SymbolsCodes.equation) {
+                return new Equation(operationSymbol, term, this.scanExpression());
+            }
+
             let secondTerm: TreeNodeBase = this.scanTerm();
+
 
             switch (operationSymbol.symbolCode) {
                 case SymbolsCodes.plus:
@@ -97,10 +105,11 @@ export class SyntaxAnalyzer {
                 case SymbolsCodes.minus:
                     term = new Subtraction(operationSymbol, term, secondTerm);
                     break;
+                
             }
-
             
         }
+
 
         return term;
     }
@@ -138,17 +147,20 @@ export class SyntaxAnalyzer {
     /**
      *  Разбор "множителя"
      */
-    scanMultiplier(): NumberConstant | TreeNodeBase {
-        let integerConstant: SymbolBase | null = this.symbol;
+    scanMultiplier(): NumberConstant | Variable | TreeNodeBase {
+        let tempConstant: SymbolBase | null = this.symbol;
 
         if(this.accept(SymbolsCodes.integerConst)) {
-            return new NumberConstant(integerConstant);
+            return new NumberConstant(tempConstant);
 
         } else if (this.accept(SymbolsCodes.minus)) {
             return new UnaryMinus(this.symbol, this.scanMultiplier());
 
         } else if(this.accept(SymbolsCodes.openBracket)) {
             return this.scanExpression();
+
+        } else if(this.accept(SymbolsCodes.identifier)) {
+            return new Variable(tempConstant)
         }
 
     }

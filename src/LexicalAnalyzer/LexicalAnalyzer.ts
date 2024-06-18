@@ -98,6 +98,9 @@ export class LexicalAnalyzer {
                 case ')':
                     this.char = this.fileIO.nextCh();
                     return this.getSymbol(SymbolsCodes.closeBracket);
+                case '=':
+                    this.char = this.fileIO.nextCh();
+                    return this.getSymbol(SymbolsCodes.equation);
             }
         }
         throw `Inadmissible symbol:${this.char}.`;

@@ -5,6 +5,7 @@ export enum SymbolsCodes {
     slash = '/',
     openBracket = '(',
     closeBracket = ')',
+    equation = '=',
     identifier = 'ident',
     integerConst = 'int',
     endOfLine = 'eol',
