@@ -77,8 +77,13 @@ export class SyntaxAnalyzer {
 
         while (this.symbol !== null && (
             this.symbol.symbolCode === SymbolsCodes.plus ||
-            this.symbol.symbolCode === SymbolsCodes.minus
+            this.symbol.symbolCode === SymbolsCodes.minus ||
+            this.symbol.symbolCode === SymbolsCodes.closeBracket
         )) {
+            if(this.symbol?.symbolCode === SymbolsCodes.closeBracket) {
+                this.nextSym();
+                return term;
+            }
 
             operationSymbol = this.symbol;
             this.nextSym();
@@ -93,6 +98,8 @@ export class SyntaxAnalyzer {
                     term = new Subtraction(operationSymbol, term, secondTerm);
                     break;
             }
+
+            
         }
 
         return term;
@@ -136,8 +143,12 @@ export class SyntaxAnalyzer {
 
         if(this.accept(SymbolsCodes.integerConst)) {
             return new NumberConstant(integerConstant);
+
         } else if (this.accept(SymbolsCodes.minus)) {
             return new UnaryMinus(this.symbol, this.scanMultiplier());
+
+        } else if(this.accept(SymbolsCodes.openBracket)) {
+            return this.scanExpression();
         }
 
     }
