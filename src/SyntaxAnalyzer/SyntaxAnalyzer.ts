@@ -7,7 +7,8 @@ import { SymbolsCodes } from '../LexicalAnalyzer/SymbolsCodes';
 import { LexicalAnalyzer } from '../LexicalAnalyzer/LexicalAnalyzer';
 import { TreeNodeBase } from './Tree/TreeNodeBase';
 import { SymbolBase } from '../LexicalAnalyzer/Symbols/SymbolBase';
-import { BinaryOperation } from './Tree/BinaryOperation';
+import { UnaryOperation } from './Tree/UnaryOperation';
+import { UnaryMinus } from './Tree/UnaryMinus';
 
 /**
  * Синтаксический анализатор - отвечает за построение синтаксического дерева
@@ -36,15 +37,17 @@ export class SyntaxAnalyzer {
         this.symbol = this.lexicalAnalyzer.nextSym();
     }
 
-    accept(expectedSymbolCode: string): void {
+    accept(expectedSymbolCode: string): boolean {
         if (this.symbol === null) {
             throw `${expectedSymbolCode} expected but END OF FILE found!`;
         }
 
         if (this.symbol.symbolCode === expectedSymbolCode) {
             this.nextSym();
+            return true;
         } else {
-            throw `${expectedSymbolCode} expected but ${this.symbol.symbolCode} found!`;
+            //throw `${expectedSymbolCode} expected but ${this.symbol.symbolCode} found!`;
+            return false;
         }
     }
 
@@ -128,11 +131,14 @@ export class SyntaxAnalyzer {
     /**
      *  Разбор "множителя"
      */
-    scanMultiplier(): NumberConstant {
+    scanMultiplier(): NumberConstant | TreeNodeBase {
         let integerConstant: SymbolBase | null = this.symbol;
 
-        this.accept(SymbolsCodes.integerConst); // проверим, что текущий символ это именно константа, а не что-то еще
+        if(this.accept(SymbolsCodes.integerConst)) {
+            return new NumberConstant(integerConstant);
+        } else if (this.accept(SymbolsCodes.minus)) {
+            return new UnaryMinus(this.symbol, this.scanMultiplier());
+        }
 
-        return new NumberConstant(integerConstant);
     }
 };

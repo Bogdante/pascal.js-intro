@@ -5,6 +5,7 @@ import { Division } from '../SyntaxAnalyzer/Tree/Division';
 import { NumberConstant } from '../SyntaxAnalyzer/Tree/NumberConstant';
 import { NumberVariable } from './Variables/NumberVariable';
 import { TreeNodeBase } from '../SyntaxAnalyzer/Tree/TreeNodeBase';
+import { UnaryMinus } from 'src/SyntaxAnalyzer/Tree/UnaryMinus';
 
 export class Engine {
     /**
@@ -74,7 +75,10 @@ export class Engine {
             let result = leftOperand.value / rightOperand.value;
 
             return new NumberVariable(result);
-        } else {
+        } else if (expression instanceof UnaryMinus) { 
+            let result = this.evaluateSimpleExpression(expression.value);
+            return new NumberVariable(-result.value);
+        }else {
             return this.evaluateMultiplier(expression);
         }
     }
